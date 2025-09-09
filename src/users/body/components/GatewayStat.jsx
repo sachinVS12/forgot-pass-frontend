@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
-import "./GatewayStat.css";
-import { navHeaderContaxt } from "../../../contaxts/navHeaderContaxt";
-import io from "socket.io-client";
-import apiClient from "../../../api/apiClient";
-import { toast } from "react-toastify";
+import React, { useContext, useEffect, useState } from 'react';
+import './GatewayStat.css';
+import { navHeaderContaxt } from '../../../contaxts/navHeaderContaxt';
+import io from 'socket.io-client';
+import apiClient from '../../../api/apiClient';
+import { toast } from 'react-toastify';
 import { MdEdit } from "react-icons/md";
 
 // Inline CSS for the modal, inspired by the reference
@@ -145,22 +145,18 @@ const GatewayStat = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGateway, setSelectedGateway] = useState(null);
-  const [newLocation, setNewLocation] = useState("");
+  const [newLocation, setNewLocation] = useState('');
 
   useEffect(() => {
     // Ensure navHeader.topics is an array before processing
     const gatewayNames = Array.isArray(navHeader?.topics)
       ? navHeader.topics
           .map((item) => {
-            const parts = item.split("|")[0].split("/");
+            const parts = item.split('|')[0].split('/');
             return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : null;
           })
           .filter((item) => item !== null)
-          .reduce(
-            (unique, item) =>
-              unique.includes(item) ? unique : [...unique, item],
-            []
-          )
+          .reduce((unique, item) => (unique.includes(item) ? unique : [...unique, item]), [])
       : [];
 
     setGatewayTopics(gatewayNames);
@@ -168,36 +164,31 @@ const GatewayStat = () => {
     // Initialize gateway data structure and fetch locations
     const initializeGatewayData = async () => {
       const initialData = {};
-
-      for (const gateway of gatewayNames || []) {
-        // Fallback to empty array if gatewayNames is undefined
+      
+      for (const gateway of gatewayNames || []) { // Fallback to empty array if gatewayNames is undefined
         try {
           const encodedGateway = encodeURIComponent(gateway);
-          const response = await apiClient.get(
-            `/mqtt/get-gateway-location/${encodedGateway}`
-          );
-
+          const response = await apiClient.get(`/mqtt/get-gateway-location/${encodedGateway}`);
+          
           initialData[gateway] = {
-            signalStrength: "N/A",
+            signalStrength: 'N/A',
             numDevices: 0,
             deviceNames: [],
             deviceStatuses: [],
-            location: response?.data?.success
-              ? response?.data?.location
-              : "Location not set",
+            location: response?.data?.success ? response?.data?.location : 'Location not set',
           };
         } catch (error) {
           console.error(`Error fetching location for ${gateway}:`, error);
           initialData[gateway] = {
-            signalStrength: "N/A",
+            signalStrength: 'N/A',
             numDevices: 0,
             deviceNames: [],
             deviceStatuses: [],
-            location: "Location not set",
+            location: 'Location not set',
           };
         }
       }
-
+      
       setGatewayData(initialData);
       setIsLoading(false);
     };
@@ -205,9 +196,9 @@ const GatewayStat = () => {
     initializeGatewayData();
 
     // Set up socket.io connection
-    const socket = io("http://3.111.219.210:4000", {
+    const socket = io('http://3.111.219.210:4000', {
       // path: '/socket.io/',
-      transports: ["websocket"],
+      transports: ['websocket'],
       secure: true,
       reconnection: true,
       reconnectionAttempts: 5,
@@ -216,75 +207,58 @@ const GatewayStat = () => {
     });
 
     // Debug connection events
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-      (gatewayNames || []).forEach((topic) => {
-        // Fallback to empty array
-        socket.emit("subscribeToTopic", topic);
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket.id);
+      (gatewayNames || []).forEach((topic) => { // Fallback to empty array
+        socket.emit('subscribeToTopic', topic);
         console.log(`Subscribed to topic: ${topic}`);
       });
     });
 
-    socket.on("connect_error", (error) => {
-      console.error("Socket connect_error:", error.message);
+    socket.on('connect_error', (error) => {
+      console.error('Socket connect_error:', error.message);
     });
 
-    socket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
+    socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
     });
 
     // Handle incoming live messages
-    socket.on("liveMessage", (data) => {
+    socket.on('liveMessage', (data) => {
       const topic = data.topic;
       const message = data.message?.message?.message;
-      console.log("Received liveMessage:", data);
+      console.log('Received liveMessage:', data);
 
-      if (message && typeof message === "string") {
+      if (message && typeof message === 'string') {
         let signalStrength, numDevices, deviceNames, deviceStatuses;
         try {
-          const parts =
-            message.startsWith("[") && message.endsWith("]")
-              ? message
-                  .replace(/[\[\]]/g, "")
-                  .trim()
-                  .split(",")
-                  .map((val) => val.trim())
-              : message.split(",").map((val) => val.trim());
+          const parts = message.startsWith('[') && message.endsWith(']')
+            ? message.replace(/[\[\]]/g, '').trim().split(',').map(val => val.trim())
+            : message.split(',').map(val => val.trim());
 
           // First two parts are signalStrength and numDevices
-          signalStrength = parts[0] || "N/A";
+          signalStrength = parts[0] || 'N/A';
           numDevices = parseInt(parts[1]) || 0;
 
           // Calculate expected message length: 2 (signalStrength, numDevices) + N (device names) + N (device statuses)
           const expectedLength = 2 + numDevices + numDevices;
           if (parts.length < expectedLength) {
-            throw new Error(
-              `Payload does not have enough parts for ${numDevices} devices`
-            );
+            throw new Error(`Payload does not have enough parts for ${numDevices} devices`);
           }
 
           // Extract device names (from index 2 to 2 + numDevices - 1)
-          deviceNames = parts
-            .slice(2, 2 + numDevices)
-            .map((name) => name || "");
+          deviceNames = parts.slice(2, 2 + numDevices).map(name => name || '');
 
           // Extract device statuses (from index 2 + numDevices to end)
-          deviceStatuses = parts
-            .slice(2 + numDevices, 2 + numDevices + numDevices)
-            .map((status) => status || "");
+          deviceStatuses = parts.slice(2 + numDevices, 2 + numDevices + numDevices).map(status => status || '');
 
           // Ensure deviceNames and deviceStatuses have the same length as numDevices
-          if (
-            deviceNames.length !== numDevices ||
-            deviceStatuses.length !== numDevices
-          ) {
-            throw new Error(
-              "Mismatch between number of devices and device names/statuses"
-            );
+          if (deviceNames.length !== numDevices || deviceStatuses.length !== numDevices) {
+            throw new Error('Mismatch between number of devices and device names/statuses');
           }
         } catch (error) {
-          console.error("Error parsing message:", error);
-          signalStrength = "N/A";
+          console.error('Error parsing message:', error);
+          signalStrength = 'N/A';
           numDevices = 0;
           deviceNames = [];
           deviceStatuses = [];
@@ -298,37 +272,31 @@ const GatewayStat = () => {
             numDevices,
             deviceNames,
             deviceStatuses,
-            location: prevData[topic]?.location || "Location not set",
+            location: prevData[topic]?.location || 'Location not set',
           },
         }));
       } else {
-        console.log(
-          `Message not processed: topic=${topic}, message=${message}`
-        );
+        console.log(`Message not processed: topic=${topic}, message=${message}`);
       }
     });
-
+    
     // Cleanup on unmount
     return () => {
       socket.disconnect();
-      console.log("Socket disconnected on cleanup");
+      console.log('Socket disconnected on cleanup');
     };
   }, [navHeader]);
 
   const openEditLocationModal = (gateway) => {
     setSelectedGateway(gateway);
-    setNewLocation(
-      gatewayData[gateway]?.location === "Location not set"
-        ? ""
-        : gatewayData[gateway]?.location || ""
-    );
+    setNewLocation(gatewayData[gateway]?.location === 'Location not set' ? '' : gatewayData[gateway]?.location || '');
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedGateway(null);
-    setNewLocation("");
+    setNewLocation('');
   };
 
   const handleUpdateLocation = async () => {
@@ -352,27 +320,27 @@ const GatewayStat = () => {
         gatewayName: selectedGateway,
         location: newLocation.trim(),
       };
-
-      await apiClient.post("/mqtt/registergateway-location", payload);
-      toast.success("Location updated successfully!");
+      
+      await apiClient.post('/mqtt/registergateway-location', payload);
+      toast.success('Location updated successfully!');
 
       setGatewayData((prevData) => ({
         ...prevData,
         [selectedGateway]: {
           ...prevData[selectedGateway],
-          location: newLocation.trim() || "Location not set",
+          location: newLocation.trim() || 'Location not set',
         },
       }));
-
+      
       closeModal();
     } catch (error) {
-      toast.error("Failed to update location. Please try again.");
-      console.error("Error submitting location:", error);
+      toast.error('Failed to update location. Please try again.');
+      console.error('Error submitting location:', error);
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       handleUpdateLocation();
     }
   };
@@ -397,11 +365,11 @@ const GatewayStat = () => {
             <tbody>
               {gatewayTopics?.map((gateway) => {
                 const gatewayInfo = gatewayData[gateway] || {
-                  signalStrength: "N/A",
+                  signalStrength: 'N/A',
                   numDevices: 0,
                   deviceNames: [],
                   deviceStatuses: [],
-                  location: "Location not set",
+                  location: 'Location not set',
                 };
                 const numDevices = gatewayInfo.numDevices || 0;
                 const rowSpan = numDevices > 0 ? numDevices : 1;
@@ -410,22 +378,13 @@ const GatewayStat = () => {
                   <React.Fragment key={gateway}>
                     {numDevices === 0 ? (
                       <tr className="gatewaystat_tr">
-                        <td className="gatewaystat_td" rowSpan={rowSpan}>
-                          {gateway?.split("/")[1]}
-                        </td>
-                        <td className="gatewaystat_td" rowSpan={rowSpan}>
-                          {gatewayInfo.signalStrength}
-                        </td>
-                        <td className="gatewaystat_td" rowSpan={rowSpan}>
-                          {numDevices}
-                        </td>
+                        <td className="gatewaystat_td" rowSpan={rowSpan}>{gateway?.split("/")[1]}</td>
+                        <td className="gatewaystat_td" rowSpan={rowSpan}>{gatewayInfo.signalStrength}</td>
+                        <td className="gatewaystat_td" rowSpan={rowSpan}>{numDevices}</td>
                         <td className="gatewaystat_td">N/A</td>
                         <td className="gatewaystat_td">N/A</td>
-                        <td
-                          className="gatewaystat_location_cell"
-                          rowSpan={rowSpan}
-                        >
-                          {gatewayInfo.location || "Location not set"}
+                        <td className="gatewaystat_location_cell" rowSpan={rowSpan}>
+                          {gatewayInfo.location || 'Location not set'}
                           <MdEdit
                             size={16}
                             className="gatewaystat_edit_icon"
@@ -435,35 +394,19 @@ const GatewayStat = () => {
                       </tr>
                     ) : (
                       gatewayInfo.deviceNames.map((deviceName, index) => (
-                        <tr
-                          key={`${gateway}-${index}`}
-                          className="gatewaystat_tr"
-                        >
+                        <tr key={`${gateway}-${index}`} className="gatewaystat_tr">
                           {index === 0 && (
                             <>
-                              <td className="gatewaystat_td" rowSpan={rowSpan}>
-                                {gateway?.split("/")[1]}
-                              </td>
-                              <td className="gatewaystat_td" rowSpan={rowSpan}>
-                                {gatewayInfo.signalStrength}
-                              </td>
-                              <td className="gatewaystat_td" rowSpan={rowSpan}>
-                                {numDevices}
-                              </td>
+                              <td className="gatewaystat_td" rowSpan={rowSpan}>{gateway?.split("/")[1]}</td>
+                              <td className="gatewaystat_td" rowSpan={rowSpan}>{gatewayInfo.signalStrength}</td>
+                              <td className="gatewaystat_td" rowSpan={rowSpan}>{numDevices}</td>
                             </>
                           )}
-                          <td className="gatewaystat_td">
-                            {deviceName || "N/A"}
-                          </td>
-                          <td className="gatewaystat_td">
-                            {gatewayInfo.deviceStatuses?.[index] || "N/A"}
-                          </td>
+                          <td className="gatewaystat_td">{deviceName || 'N/A'}</td>
+                          <td className="gatewaystat_td">{gatewayInfo.deviceStatuses?.[index] || 'N/A'}</td>
                           {index === 0 && (
-                            <td
-                              className="gatewaystat_location_cell"
-                              rowSpan={rowSpan}
-                            >
-                              {gatewayInfo.location || "Location not set"}
+                            <td className="gatewaystat_location_cell" rowSpan={rowSpan}>
+                              {gatewayInfo.location || 'Location not set'}
                               <MdEdit
                                 size={16}
                                 className="gatewaystat_edit_icon"
@@ -488,32 +431,20 @@ const GatewayStat = () => {
         <div className="custom-edit-location-modal-overlay">
           <div className="custom-edit-location-modal">
             <div className="custom-edit-location-modal-header">
-              <h2 className="custom-edit-location-modal-title">
-                Edit Location
-              </h2>
-              <button
-                className="custom-edit-location-modal-close"
-                onClick={closeModal}
-              >
+              <h2 className="custom-edit-location-modal-title">Edit Location</h2>
+              <button className="custom-edit-location-modal-close" onClick={closeModal}>
                 ×
               </button>
             </div>
             <div className="custom-edit-location-modal-body">
-              <label className="custom-edit-location-modal-label">
-                Current Location:
-              </label>
+              <label className="custom-edit-location-modal-label">Current Location:</label>
               <input
                 type="text"
-                value={
-                  gatewayData[selectedGateway]?.location || "Location not set"
-                }
+                value={gatewayData[selectedGateway]?.location || 'Location not set'}
                 disabled
                 className="custom-edit-location-modal-input"
               />
-              <label
-                className="custom-edit-location-modal-label"
-                style={{ marginTop: "12px" }}
-              >
+              <label className="custom-edit-location-modal-label" style={{ marginTop: "12px" }}>
                 New Location (max 50 chars):
               </label>
               <input

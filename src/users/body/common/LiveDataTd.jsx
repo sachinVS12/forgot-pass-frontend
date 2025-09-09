@@ -7,17 +7,20 @@ const socketCache = new Map();
 const getCachedSocket = (topic) => {
   if (!socketCache.has(topic)) {
     const newSocket = io("http://3.111.219.210:4000", {
-      // path: "/socket.io/",
       transports: ["websocket"],
       secure: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 5000,
-      upgrade: false, 
+      upgrade: false,
     });
 
-    newSocket.on("connect", () => console.log(`Socket connected for ${topic}`));
-    newSocket.on("connect_error", (err) => console.error(`Connection error for ${topic}:`, err));
+    newSocket.on("connect", () =>
+      console.log(`Socket connected for ${topic}`)
+    );
+    newSocket.on("connect_error", (err) =>
+      console.error(`Connection error for ${topic}:`, err)
+    );
 
     socketCache.set(topic, {
       socket: newSocket,
@@ -39,10 +42,23 @@ const LiveDataTd = ({ topic, onTimestampUpdate }) => {
     const { socket } = topicEntry;
 
     const handleMessage = (data) => {
-      // console.log(`Message received for ${topic}:`, data);
-      const messageData = data?.message?.message?.message || data?.message?.message || data?.message;
-      const timestamp = data?.message?.timestamp;
+      // Make sure the message belongs to *this* topic
+      const incomingTopic =
+        data?.topic || data?.message?.topic || null;
+
+      if (incomingTopic !== topic) return; // ignore others
+
+      const messageData =
+        data?.message?.message?.message ||
+        data?.message?.message ||
+        data?.message ||
+        data;
+
+      const timestamp =
+        data?.message?.timestamp || data?.timestamp || Date.now();
+
       setLiveMessage(messageData);
+
       if (timestamp && onTimestampUpdate) {
         onTimestampUpdate(topic, timestamp);
       }
@@ -70,8 +86,16 @@ const LiveDataTd = ({ topic, onTimestampUpdate }) => {
   return isFFT ? (
     <td style={{ fontWeight: "bolder" }}>N/A</td>
   ) : (
-    <td style={{ fontWeight: "bolder",textShadow:"0px 0px 4px rgba(0, 0, 0, 0.97)", background: "#34495e",fontSize:"20px", color: "rgb(0, 255, 238)" }}>
-      {liveMessage !== null ? liveMessage : "-"}
+    <td
+      style={{
+        fontWeight: "bolder",
+        textShadow: "0px 0px 4px rgba(0, 0, 0, 0.97)",
+        background: "#34495e",
+        fontSize: "20px",
+        color: "rgb(0, 255, 238)",
+      }}
+    >
+      {liveMessage !== null ? liveMessage.toString() : "-"}
     </td>
   );
 };
