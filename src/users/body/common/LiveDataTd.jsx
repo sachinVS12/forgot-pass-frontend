@@ -13,13 +13,11 @@ const getCachedSocket = (topic) => {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 5000,
-      upgrade: false,
+      upgrade: false, 
     });
 
     newSocket.on("connect", () => console.log(`Socket connected for ${topic}`));
-    newSocket.on("connect_error", (err) =>
-      console.error(`Connection error for ${topic}:`, err)
-    );
+    newSocket.on("connect_error", (err) => console.error(`Connection error for ${topic}:`, err));
 
     socketCache.set(topic, {
       socket: newSocket,
@@ -42,10 +40,7 @@ const LiveDataTd = ({ topic, onTimestampUpdate }) => {
 
     const handleMessage = (data) => {
       // console.log(`Message received for ${topic}:`, data);
-      const messageData =
-        data?.message?.message?.message ||
-        data?.message?.message ||
-        data?.message;
+      const messageData = data?.message?.message?.message || data?.message?.message || data?.message;
       const timestamp = data?.message?.timestamp;
       setLiveMessage(messageData);
       if (timestamp && onTimestampUpdate) {
@@ -75,15 +70,7 @@ const LiveDataTd = ({ topic, onTimestampUpdate }) => {
   return isFFT ? (
     <td style={{ fontWeight: "bolder" }}>N/A</td>
   ) : (
-    <td
-      style={{
-        fontWeight: "bolder",
-        textShadow: "0px 0px 4px rgba(0, 0, 0, 0.97)",
-        background: "#34495e",
-        fontSize: "20px",
-        color: "rgb(0, 255, 238)",
-      }}
-    >
+    <td style={{ fontWeight: "bolder",textShadow:"0px 0px 4px rgba(0, 0, 0, 0.97)", background: "#34495e",fontSize:"20px", color: "rgb(0, 255, 238)" }}>
       {liveMessage !== null ? liveMessage : "-"}
     </td>
   );
