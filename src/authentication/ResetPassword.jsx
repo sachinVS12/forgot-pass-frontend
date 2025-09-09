@@ -143,30 +143,39 @@ const ResetPassword = () => {
 
   if (!isValidToken) {
     return (
-      <div className="login-container">
-        <div className="login-left">
+      <div className="contact_support">
+        <div className="row" id="row_contact_support">
           <LoginLeft />
-        </div>
-        <div className="login-right">
-          <div className="login-form-container">
-            <h2>Invalid or Expired Link</h2>
-            <p className="reset-password-text">
-              The password reset link is invalid or has expired. Please request
-              a new password reset link.
-            </p>
-            <button
-              onClick={() => navigate("/forgot-password")}
-              className="login-button"
-            >
-              Request New Reset Link
-            </button>
-            <div className="login-footer">
-              <p>
-                Remember your password?{" "}
-                <span onClick={() => navigate("/")} className="link">
-                  Login here
-                </span>
-              </p>
+          <div className="col-12 col-md-6 col_right_contact_support">
+            <div className="contact_support_container">
+              <h2 className="contact_support_title">Invalid or Expired Link</h2>
+              <section>
+                <p className="reset-password-text">
+                  The password reset link is invalid or has expired. Please
+                  request a new password reset link.
+                </p>
+                <div className="login_contact_support_submit my-4">
+                  <button
+                    onClick={() => navigate("/forgot-password")}
+                    className="login-button"
+                    style={{ width: "100%" }}
+                  >
+                    Request New Reset Link
+                  </button>
+                </div>
+                <div className="login-footer">
+                  <p>
+                    Remember your password?{" "}
+                    <span
+                      onClick={() => navigate("/")}
+                      className="link"
+                      style={{ color: "blue" }}
+                    >
+                      Login here
+                    </span>
+                  </p>
+                </div>
+              </section>
             </div>
           </div>
         </div>
