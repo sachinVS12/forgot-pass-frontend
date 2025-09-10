@@ -7,6 +7,7 @@ const socketCache = new Map();
 const getCachedSocket = (topic) => {
   if (!socketCache.has(topic)) {
     const newSocket = io("http://3.111.219.210:4000", {
+      // path: "/socket.io/",
       transports: ["websocket"],
       secure: true,
       reconnection: true,
@@ -15,9 +16,7 @@ const getCachedSocket = (topic) => {
       upgrade: false,
     });
 
-    newSocket.on("connect", () =>
-      console.log(`Socket connected for ${topic}`)
-    );
+    newSocket.on("connect", () => console.log(`Socket connected for ${topic}`));
     newSocket.on("connect_error", (err) =>
       console.error(`Connection error for ${topic}:`, err)
     );
@@ -42,23 +41,13 @@ const LiveDataTd = ({ topic, onTimestampUpdate }) => {
     const { socket } = topicEntry;
 
     const handleMessage = (data) => {
-      // Make sure the message belongs to *this* topic
-      const incomingTopic =
-        data?.topic || data?.message?.topic || null;
-
-      if (incomingTopic !== topic) return; // ignore others
-
+      // console.log(`Message received for ${topic}:`, data);
       const messageData =
         data?.message?.message?.message ||
         data?.message?.message ||
-        data?.message ||
-        data;
-
-      const timestamp =
-        data?.message?.timestamp || data?.timestamp || Date.now();
-
+        data?.message;
+      const timestamp = data?.message?.timestamp;
       setLiveMessage(messageData);
-
       if (timestamp && onTimestampUpdate) {
         onTimestampUpdate(topic, timestamp);
       }
@@ -95,7 +84,7 @@ const LiveDataTd = ({ topic, onTimestampUpdate }) => {
         color: "rgb(0, 255, 238)",
       }}
     >
-      {liveMessage !== null ? liveMessage.toString() : "-"}
+      {liveMessage !== null ? liveMessage : "-"}
     </td>
   );
 };
