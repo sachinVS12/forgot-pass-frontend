@@ -205,7 +205,7 @@ const GatewayStat = () => {
     initializeGatewayData();
 
     // Set up socket.io connection
-    const socket = io("http://3.111.219.210:6000", {
+    const socket = io("wss://3.111.219.210:6000", {
       // path: '/socket.io/',
       transports: ["websocket"],
       secure: true,
