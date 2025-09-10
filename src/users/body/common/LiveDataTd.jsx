@@ -6,7 +6,7 @@ const socketCache = new Map();
 
 const getCachedSocket = (topic) => {
   if (!socketCache.has(topic)) {
-    const newSocket = io("http://3.111.219.210:4000", {
+    const newSocket = io("http://3.111.219.210:6000", {
       // path: "/socket.io/",
       transports: ["websocket"],
       secure: true,

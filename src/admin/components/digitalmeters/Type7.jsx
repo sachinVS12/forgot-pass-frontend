@@ -10,7 +10,7 @@ const Type7 = ({ topic, minValue = -20, maxValue = 100 ,unit="c",label="n/a"}) =
   const [value, setValue] = useState(20);
 
   useEffect(() => {
-     const socket = io("http://3.111.219.210:4000", {
+     const socket = io("http://3.111.219.210:6000", {
         //  path: "/socket.io/",
          transports: ["websocket"],
          secure: true,

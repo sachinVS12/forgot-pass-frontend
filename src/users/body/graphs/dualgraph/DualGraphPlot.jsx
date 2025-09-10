@@ -116,7 +116,7 @@ const DualGraphPlot = ({ topic1, topic2, topic3, topic4, topic5, height, width }
     //   path: "/socket.io/",  
     //   transports: ["websocket", "polling"],
     // });
-    const socket = io("http://3.111.219.210:4000", {
+    const socket = io("http://3.111.219.210:6000", {
       path: "/socket.io/",  
       transports: ["websocket", "polling"],
     });
