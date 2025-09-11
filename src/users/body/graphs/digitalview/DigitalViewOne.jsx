@@ -22,7 +22,7 @@ const DigitalViewOne = ({ topic, minValue = 0, maxValue = 100, ticks = 5 }) => {
   );
 
   useEffect(() => {
-    const socket = io("http://3.111.219.210:6000", { transports: ["websocket",'polling'] });
+    const socket = io("http://3.111.219.210:3000", { transports: ["websocket",'polling'] });
 
     socket.emit("subscribeToTopic", topic);
 

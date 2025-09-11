@@ -11,7 +11,7 @@ const Type5 = ({
   const [value, setValue] = useState(0);
 
   useEffect(() => {
-    const socket = io("http://3.111.219.210:6000", {
+    const socket = io("http://3.111.219.210:3000", {
       // path: "/socket.io/",
       transports: ["websocket"],
       secure: true,
